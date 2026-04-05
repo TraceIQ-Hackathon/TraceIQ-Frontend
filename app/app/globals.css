@@ -1,0 +1,68 @@
+@import "tailwindcss";
+
+/* TraceIQ color system */
+@theme inline {
+  --color-background: #0b0f14;
+  --color-surface: #14342b;
+  --color-accent: #ed9b40;
+  --color-accent-hover: #f2a957;
+  --color-foreground: #e5e7eb;
+  --color-muted: #9ca3af;
+  --font-sans: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol";
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+}
+
+/* Range slider thumb */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: #ed9b40;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(237, 155, 64, 0.5);
+  border: 2px solid #0b0f14;
+  margin-top: -8px;
+}
+
+input[type="range"]::-moz-range-thumb {
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: #ed9b40;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(237, 155, 64, 0.5);
+  border: 2px solid #0b0f14;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    to right,
+    #ed9b40 0%,
+    #ed9b40 var(--range-progress, 20%),
+    rgba(255, 255, 255, 0.1) var(--range-progress, 20%)
+  );
+}
+
+input[type="range"]:focus {
+  outline: none;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Selection color */
+::selection {
+  background: rgba(237, 155, 64, 0.3);
+  color: #e5e7eb;
+}
