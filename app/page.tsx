@@ -45,6 +45,54 @@ const SCENARIOS = [
   },
 ] as const;
 
+// ── LIVE FLOWS ────────────────────────────────────────────────────────────────
+// Real multi-step flows against a live backend.
+// Each flow chains several endpoints to simulate genuine user journeys.
+const LIVE_FLOWS = [
+  {
+    id: "core-trade" as const,
+    label: "Core Trade Flow",
+    emoji: "🤝",
+    badge: "Full Loop",
+    badgeColor: "#22C55E",
+    description:
+      "The complete marketplace loop in one flow — a user discovers an item, decides to trade, makes an offer, and closes the deal.",
+    pitch: "Discovery → Decision → Action → Outcome",
+    steps: ["Browse Feed", "View Item", "Propose Trade", "Track Offer", "Accept Deal"],
+    glow: "rgba(34, 197, 94, 0.12)",
+    border: "rgba(34, 197, 94, 0.3)",
+    ready: true,
+  },
+  {
+    id: "negotiation" as const,
+    label: "Trade Negotiation",
+    emoji: "💬",
+    badge: "Live Interaction",
+    badgeColor: "#3B82F6",
+    description:
+      "Two users go back and forth — proposing, messaging, and updating terms — the way real negotiations actually play out.",
+    pitch: "Proposal → Conversation → Counter-offer",
+    steps: ["Propose Trade", "Check Status", "Send Message", "Read Thread", "Update Terms"],
+    glow: "rgba(59, 130, 246, 0.12)",
+    border: "rgba(59, 130, 246, 0.3)",
+    ready: true,
+  },
+  {
+    id: "trust-reputation" as const,
+    label: "Trust & Reputation",
+    emoji: "⭐",
+    badge: "Trust Layer",
+    badgeColor: "#F59E0B",
+    description:
+      "After a trade closes, both sides leave reviews and reputation scores update — building verifiable trust across the entire platform.",
+    pitch: "Completion → Review → Reputation",
+    steps: ["Complete Trade", "Leave Review", "View Profile", "See Reviews", "Check Reputation"],
+    glow: "rgba(245, 158, 11, 0.12)",
+    border: "rgba(245, 158, 11, 0.3)",
+    ready: true,
+  },
+] as const;
+
 const FEATURES = [
   { icon: "⚡", label: "Load Testing", desc: "Up to 250 simulated requests" },
   { icon: "🧠", label: "AI Analysis", desc: "GPT-powered root cause detection" },
@@ -369,6 +417,7 @@ function DualLineChart({
 }
 
 export default function Home() {
+  const [mode, setMode] = useState<"demo" | "live">("demo");
   const [selected, setSelected] = useState<number | null>(null);
   const [requestCount, setRequestCount] = useState(80);
   const [loading, setLoading] = useState(false);
@@ -412,6 +461,14 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleModeSwitch = (next: "demo" | "live") => {
+    if (next === mode || loading) return;
+    setMode(next);
+    setSelected(null);
+    setResult(null);
+    setError(null);
   };
 
   return (
@@ -535,7 +592,7 @@ export default function Home() {
           </motion.div>
         </motion.header>
 
-        {/* ── SCENARIOS ── */}
+        {/* ── MODE SWITCHER + SCENARIOS / LIVE FLOWS ── */}
         <motion.section
           variants={containerVariants}
           initial="hidden"
@@ -544,85 +601,270 @@ export default function Home() {
           className="flex flex-col gap-5"
           aria-labelledby="scenarios-label"
         >
+          {/* Mode toggle */}
+          <motion.div variants={itemVariants} className="flex justify-center">
+            <div className="flex rounded-xl border border-white/10 bg-white/[0.03] p-1 gap-1 backdrop-blur-sm">
+              <motion.button
+                type="button"
+                onClick={() => handleModeSwitch("demo")}
+                disabled={loading}
+                className="relative flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed"
+                style={{
+                  color: mode === "demo" ? "#0a1f1a" : "#9CA3AF",
+                }}
+                whileHover={mode !== "demo" ? { color: "#e5e7eb" } : {}}
+                transition={{ duration: 0.15 }}
+              >
+                {mode === "demo" && (
+                  <motion.div
+                    layoutId="mode-pill"
+                    className="absolute inset-0 rounded-lg bg-accent"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+                  />
+                )}
+                <span className="relative">🧪</span>
+                <span className="relative">Demo Scenarios</span>
+              </motion.button>
+              <motion.button
+                type="button"
+                onClick={() => handleModeSwitch("live")}
+                disabled={loading}
+                className="relative flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors disabled:cursor-not-allowed"
+                style={{
+                  color: mode === "live" ? "#0a1f1a" : "#9CA3AF",
+                }}
+                whileHover={mode !== "live" ? { color: "#e5e7eb" } : {}}
+                transition={{ duration: 0.15 }}
+              >
+                {mode === "live" && (
+                  <motion.div
+                    layoutId="mode-pill"
+                    className="absolute inset-0 rounded-lg bg-accent"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+                  />
+                )}
+                <span className="relative">🌐</span>
+                <span className="relative">Live Flows</span>
+                <span
+                  className="relative rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider"
+                  style={{
+                    color: mode === "live" ? "#0a1f1a" : "#6366F1",
+                    background: mode === "live" ? "rgba(0,0,0,0.15)" : "rgba(99,102,241,0.15)",
+                  }}
+                >
+                  Real
+                </span>
+              </motion.button>
+            </div>
+          </motion.div>
+
+          {/* Mode description strip */}
+          <AnimatePresence mode="wait">
+            {mode === "live" && (
+              <motion.div
+                key="live-banner"
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.2 }}
+                className="flex items-center gap-2 rounded-xl border border-indigo-500/20 bg-indigo-500/[0.07] px-4 py-2.5 text-xs text-indigo-300"
+              >
+                <span className="shrink-0">🌐</span>
+                <span>
+                  <span className="font-semibold text-indigo-200">Live Flows</span> run against a real backend with real endpoints — chaining multiple calls together to simulate how users actually move through the app.
+                </span>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <motion.div variants={itemVariants} className="flex items-center gap-3">
             <div className="h-px flex-1 bg-white/10" />
             <h2
               id="scenarios-label"
               className="text-xs font-semibold uppercase tracking-widest text-muted"
             >
-              Step 1 — Pick a Scenario
+              {mode === "demo" ? "Step 1 — Pick a Scenario" : "Step 1 — Pick a Flow"}
             </h2>
             <div className="h-px flex-1 bg-white/10" />
           </motion.div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            {SCENARIOS.map((scenario, index) => (
-              <motion.button
-                key={scenario.label}
-                type="button"
-                variants={itemVariants}
-                onClick={() => setSelected(index)}
-                disabled={loading}
-                className="group relative flex flex-col gap-3 overflow-hidden rounded-2xl border p-5 text-left outline-none transition-all focus-visible:ring-2 focus-visible:ring-accent/60 disabled:cursor-not-allowed disabled:opacity-60"
-                style={{
-                  borderColor:
-                    selected === index ? scenario.border : "rgba(255,255,255,0.08)",
-                  background:
-                    selected === index
-                      ? `radial-gradient(ellipse at top left, ${scenario.glow}, transparent 70%), #14342b`
-                      : "rgba(20,52,43,0.4)",
-                }}
-                whileHover={{
-                  scale: 1.02,
-                  borderColor: scenario.border,
-                  background: `radial-gradient(ellipse at top left, ${scenario.glow}, transparent 70%), #14342b`,
-                }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ duration: 0.2 }}
+          <AnimatePresence mode="wait">
+            {mode === "demo" ? (
+              <motion.div
+                key="demo-grid"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25 }}
+                className="grid grid-cols-1 gap-4 sm:grid-cols-3"
               >
-                {/* Selected indicator */}
-                <AnimatePresence>
-                  {selected === index && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0 }}
-                      className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-background"
-                    >
-                      ✓
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                <div className="flex items-start justify-between gap-2">
-                  <span className="text-2xl">{scenario.emoji}</span>
-                  <span
-                    className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+                {SCENARIOS.map((scenario, index) => (
+                  <motion.button
+                    key={scenario.label}
+                    type="button"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: index * 0.08, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    onClick={() => setSelected(index)}
+                    disabled={loading}
+                    className="group relative flex flex-col gap-3 overflow-hidden rounded-2xl border p-5 text-left outline-none transition-all focus-visible:ring-2 focus-visible:ring-accent/60 disabled:cursor-not-allowed disabled:opacity-60"
                     style={{
-                      color: scenario.badgeColor,
-                      background: `${scenario.badgeColor}20`,
+                      borderColor:
+                        selected === index ? scenario.border : "rgba(255,255,255,0.08)",
+                      background:
+                        selected === index
+                          ? `radial-gradient(ellipse at top left, ${scenario.glow}, transparent 70%), #14342b`
+                          : "rgba(20,52,43,0.4)",
                     }}
+                    whileHover={{
+                      scale: 1.02,
+                      borderColor: scenario.border,
+                      background: `radial-gradient(ellipse at top left, ${scenario.glow}, transparent 70%), #14342b`,
+                    }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.2 }}
                   >
-                    {scenario.badge}
-                  </span>
-                </div>
+                    <AnimatePresence>
+                      {selected === index && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0 }}
+                          className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-background"
+                        >
+                          ✓
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
-                <div className="flex flex-col gap-1">
-                  <span className="text-sm font-semibold text-foreground">
-                    {scenario.label}
-                  </span>
-                  <span className="text-xs leading-relaxed text-muted">
-                    {scenario.description}
-                  </span>
-                </div>
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-2xl">{scenario.emoji}</span>
+                      <span
+                        className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+                        style={{
+                          color: scenario.badgeColor,
+                          background: `${scenario.badgeColor}20`,
+                        }}
+                      >
+                        {scenario.badge}
+                      </span>
+                    </div>
 
-              </motion.button>
-            ))}
-          </div>
+                    <div className="flex flex-col gap-1">
+                      <span className="text-sm font-semibold text-foreground">
+                        {scenario.label}
+                      </span>
+                      <span className="text-xs leading-relaxed text-muted">
+                        {scenario.description}
+                      </span>
+                    </div>
+                  </motion.button>
+                ))}
+              </motion.div>
+            ) : (
+              <motion.div
+                key="live-grid"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25 }}
+                className="grid grid-cols-1 gap-4 sm:grid-cols-3"
+              >
+                {LIVE_FLOWS.map((flow, index) => (
+                  <motion.button
+                    key={flow.id}
+                    type="button"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: index * 0.08, ease: [0.25, 0.46, 0.45, 0.94] }}
+                    onClick={() => setSelected(index)}
+                    disabled={loading}
+                    className="group relative flex flex-col gap-3 overflow-hidden rounded-2xl border p-5 text-left outline-none transition-all focus-visible:ring-2 focus-visible:ring-accent/60 disabled:cursor-not-allowed disabled:opacity-60"
+                    style={{
+                      borderColor: selected === index ? flow.border : "rgba(255,255,255,0.08)",
+                      background:
+                        selected === index
+                          ? `radial-gradient(ellipse at top left, ${flow.glow}, transparent 70%), #14342b`
+                          : "rgba(20,52,43,0.4)",
+                    }}
+                    whileHover={{
+                      scale: 1.02,
+                      borderColor: flow.border,
+                      background: `radial-gradient(ellipse at top left, ${flow.glow}, transparent 70%), #14342b`,
+                    }}
+                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {/* Selected indicator */}
+                    <AnimatePresence>
+                      {selected === index && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0 }}
+                          className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-[10px] font-bold text-background"
+                        >
+                          ✓
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-2xl">{flow.emoji}</span>
+                      <span
+                        className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider"
+                        style={{
+                          color: flow.badgeColor,
+                          background: `${flow.badgeColor}20`,
+                        }}
+                      >
+                        {flow.badge}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col gap-1.5">
+                      <span className="text-sm font-semibold text-foreground">
+                        {flow.label}
+                      </span>
+                      <span className="text-xs leading-relaxed text-muted">
+                        {flow.description}
+                      </span>
+                    </div>
+
+                    {/* Journey pitch line */}
+                    <div
+                      className="mt-1 rounded-lg px-2.5 py-1.5 text-[10px] font-semibold tracking-wide"
+                      style={{
+                        color: flow.badgeColor,
+                        background: `${flow.badgeColor}12`,
+                      }}
+                    >
+                      {flow.pitch}
+                    </div>
+
+                    {/* Step indicators */}
+                    <div className="flex flex-wrap gap-1 pt-0.5">
+                      {flow.steps.map((step, i) => (
+                        <span
+                          key={i}
+                          className="rounded px-1.5 py-0.5 text-[9px] font-medium text-muted/70"
+                          style={{ background: "rgba(255,255,255,0.05)" }}
+                        >
+                          {step}
+                        </span>
+                      ))}
+                    </div>
+                  </motion.button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <motion.p variants={itemVariants} className="flex items-start gap-1.5 text-xs leading-relaxed text-muted/60">
             <span className="mt-px shrink-0 text-[10px]">ⓘ</span>
-            These scenarios are not hardcoded — each run is mathematically generated using parameters tuned to that profile, with a degree of randomness built in so the numbers vary naturally, just like real traffic would.
+            {mode === "demo"
+              ? "These scenarios are not hardcoded — each run is mathematically generated using parameters tuned to that profile, with a degree of randomness built in so the numbers vary naturally, just like real traffic would."
+              : "Live Flows chain real API endpoints in sequence — replicating how users actually move through the app and producing latency and error data across entire journeys, not just isolated calls."}
           </motion.p>
         </motion.section>
 
@@ -746,6 +988,16 @@ export default function Home() {
                   />
                   Running Test…
                 </>
+              ) : mode === "live" ? (
+                <>
+                  <span>🌐</span>
+                  Run Flow
+                  {selected !== null && (
+                    <span className="rounded-md bg-background/20 px-1.5 py-0.5 text-xs font-semibold">
+                      {LIVE_FLOWS[selected].label}
+                    </span>
+                  )}
+                </>
               ) : (
                 <>
                   <span>⚡</span>
@@ -765,7 +1017,7 @@ export default function Home() {
                 animate={{ opacity: 1 }}
                 className="mt-2 text-xs text-muted"
               >
-                Select a scenario above to run a test
+                {mode === "demo" ? "Select a scenario above to run a test" : "Select a flow above to run it"}
               </motion.p>
             )}
           </motion.div>
